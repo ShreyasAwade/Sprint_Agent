@@ -1,0 +1,99 @@
+# SprintAgent — Cursor Rules
+
+## Agent Behavior
+- Always generate STRICT valid JSON output
+- Never include explanations, markdown, or extra text outside JSON
+- Follow schema EXACTLY — no additional or missing fields
+
+## Output Contract
+Agent MUST return JSON with keys:
+- feature_summary
+- total_story_points
+- tasks
+- sprint_recommendation
+- unknowns
+
+Each task MUST contain:
+- id
+- title
+- description
+- story_points
+- depends_on
+- type (backend | frontend | infra | test | docs)
+- code_stub
+- risks
+- acceptance_criteria
+
+## Schema Enforcement
+- Field names must NEVER change
+- Missing fields are NOT allowed
+- Extra fields are NOT allowed
+- tasks must always be a list of objects
+
+## Story Points Rules
+- Use Fibonacci sequence: 1, 2, 3, 5, 8, 13
+- No task may exceed 13 story points
+- total_story_points MUST equal sum(tasks.story_points)
+
+## Code Generation Rules
+- All code MUST be valid Python
+- Include:
+  - Type hints
+  - Google-style docstrings
+  - TODO comments
+  - Basic implementation structure (not just pass)
+- No secrets or API keys in code
+
+## Risk Guidelines
+- Risks must be specific technical failure scenarios
+- Avoid vague statements like "performance issues"
+- Prefer:
+  - race conditions
+  - DB transaction failures
+  - cache inconsistency
+  - API timeout issues
+
+## Acceptance Criteria
+- Must be measurable and testable
+- Include:
+  - API endpoints
+  - expected responses
+  - status codes
+  - input/output format
+
+## Reliability Rules
+- If JSON is invalid → trigger retry
+- If schema mismatch → regenerate output
+- Always prioritize correctness over creativity
+
+## Evaluation Alignment
+Agent output must maximize:
+- task_quality
+- code_quality
+- planning_accuracy
+- response_speed
+- json_reliability
+
+## Code Style
+- Functions under 40 lines
+- Type hints required
+- Google-style docstrings
+- Modular design preferred
+- Never use os.environ directly — use load_dotenv()
+
+## Workflow
+- After changing SYSTEM_PROMPT → run:
+  python main.py --benchmark
+
+- After changing evaluator.py → run:
+  python -m pytest tests/
+
+## Security
+- Never commit .env
+- Never expose API keys
+- Always use environment variables
+
+## Strict Prohibitions
+- No hardcoded secrets
+- No schema deviation
+- No unstructured output

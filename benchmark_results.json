@@ -1,0 +1,112 @@
+{
+  "baseline": {
+    "latency_ms": 3328,
+    "raw": "**Real-Time Collaborative Document Editor**\n=====================================\n\n### Overview\n\nThis project will utilize FastAPI, React, PostgreSQL, and Redis to create a real-time collaborative document editor with multiple user support, full revision history, and role-based access control.\n\n### Architecture\n#### Backend (FastAPI)\n\n*   **Database (PostgreSQL)**: Store documents, revisions, and user roles.\n*   **Cache (Redis)**: Store temporary data, such as user connections and document locks.\n*   **WebSockets**: Establish real-time communication between clients and server.\n\n#### Frontend (React)\n\n*   **Document Editor**: Render and update the document in real-time.\n*   **User Interface**: Display user roles, document revisions, and collaboration features.\n\n### Implementation\n\n#### Backend (FastAPI)\n\n```python\n# main.py\nfrom fastapi import FastAPI, WebSocket\nfrom fastapi.responses import HTMLResponse\nfrom fastapi.staticfiles import StaticFiles\nfrom sqlalchemy import create_engine\nfrom sqlalchemy.orm import sessionmaker\nfrom sqlalchemy.ext.declarative import declarative_base\nfrom sqlalchemy import Column, Integer, String, Text\nfrom pydantic import BaseModel\nimport redis\nimport json\n\napp = FastAPI()\n\n# Database connection\nengine = create_engine(\"postgresql://user:password@host:port/dbname\")\nBase = declarative_base()\nSession = sessionmaker(bind=engine)\n\n# Redis connection\nredis_client = redis.Redis(host=\"localhost\", port=6379, db=0)\n\n# Define models\nclass Document(Base):\n    __tablename__ = \"documents\"\n    id = Column(Integer, primary_key=True)\n    title = Column(String)\n    content = Column(Text)\n\nclass Revision(Base):\n    __tablename__ = \"revisions\"\n    id = Column(Integer, primary_key=True)\n    document_id = Column(Integer, ForeignKey(\"documents.id\"))\n    content = Column(Text)\n\nclass User(Base):\n    __tablename__ = \"users\"\n    id = Column(Integer, primary_key=True)\n    username = Column(String)\n    role = Column(String)\n\n# Define WebSocket endpoint\n@app.websocket(\"/ws/{document_id}\")\nasync def websocket_endpoint(websocket: WebSocket, document_id: int):\n    await websocket.accept()\n    while True:\n        data = await websocket.receive_text()\n        # Handle user input and update document\n        # ...\n\n# Define API endpoints\n@app.get(\"/documents/{document_id}\")\ndef get_document(document_id: int):\n    # Retrieve document from database\n    # ...\n\n@app.post(\"/documents/{document_id}/revisions\")\ndef create_revision(document_id: int, content: str):\n    # Create new revision and store in database\n    # ...\n\n@app.get(\"/documents/{document_id}/revisions\")\ndef get_revisions(document_id: int):\n    # Retrieve all revisions for a document\n    # ...\n\n# Define role-based access control\n@app.get(\"/users/{user_id}/role\")\ndef get_user_role(user_id: int):\n    # Retrieve user role from database\n    # ...\n\n# Mount static files\napp.mount(\"/static\", StaticFiles(directory=\"static\"), name=\"static\")\n```\n\n#### Frontend (React)\n\n```javascript\n// App.js\nimport React, { useState, useEffect } from \"react\";\nimport WebSocket from \"ws\";\n\nfunction App() {\n    const [document, setDocument] = useState({});\n    const [revisions, setRevisions] = useState([]);\n    const [userRole, setUserRole] = useState(\"\");\n\n    useEffect(() => {\n        // Establish WebSocket connection\n        const ws = new WebSocket(\"ws://localhost:8000/ws/1\");\n        ws.onmessage = (event) => {\n            // Handle server updates\n            // ...\n        };\n        ws.onopen = () => {\n            // Send initial user data\n            // ...\n        };\n        ws.onclose = () => {\n            // Handle connection closure\n            // ...\n        };\n        ws.onerror = (event) => {\n            // Handle connection errors\n            // ...\n        };\n    }, []);\n\n    // Render document editor and user interface\n    return (\n        <div>\n            <h1>{document.title}</h1>\n            <textarea value={document.content} onChange={(event) => {\n                // Update document content\n                // ...\n            }} />\n            <ul>\n                {revisions.map((revision) => (\n                    <li key={revision.id}>{revision.content}</li>\n                ))}\n            </ul>\n            <p>User Role: {userRole}</p>\n        </div>\n    );\n}\n\nexport default App;\n```\n\n### Example Use Cases\n\n1.  **Multiple Users Editing Simultaneously**:\n    *   User A and User B open the same document in their browsers.\n    *   User A makes changes to the document and sends the updates to the server via WebSockets.\n    *   The server broadcasts the updates to all connected clients, including User B.\n    *   User B's browser receives the updates and reflects the changes in the document editor.\n2.  **Full Revision History**:\n    *   User A creates a new document and makes several changes to it.\n    *   Each change is stored as a new revision in the database.\n    *   User A can view the revision history and revert to a previous version if needed.\n3.  **Role-Based Access Control**:\n    *   User A is the owner of a document and has editor permissions.\n    *   User B is a viewer and can only read the document, not edit it.\n    *   The server enforces role-based access control and prevents User B from making changes to the document.\n\n### Advice\n\n*   Use a robust database like PostgreSQL to store documents and revisions.\n*   Implement WebSockets for real-time communication between clients and server.\n*   Use a caching layer like Redis to improve performance and reduce database queries.\n*   Enforce role-based access control to ensure users can only perform actions based on their roles.\n*   Use a front-end framework like React to build a responsive and interactive user interface.",
+    "score": 1200
+  },
+  "agent": {
+    "latency_ms": 2573,
+    "plan": {
+      "feature_summary": "Real-time collaborative document editor with multiple user simultaneous editing, full revision history, and role-based access",
+      "total_story_points": 21,
+      "tasks": [
+        {
+          "id": "T-001",
+          "title": "Create user role model",
+          "description": "Design and implement user role model with owner, editor, and viewer roles",
+          "story_points": 2,
+          "depends_on": [],
+          "type": "backend",
+          "code_stub": "def create_role_model() -> None:\n    # Purpose: Create user role model\n    # Args: None\n    # Returns: None\n    # TODO: implement role model logic\n    roles = ['owner', 'editor', 'viewer']\n    # Create roles in database",
+          "risks": [
+            "Database schema inconsistencies"
+          ],
+          "acceptance_criteria": [
+            "Roles are created in database",
+            "Roles are returned in API response"
+          ]
+        },
+        {
+          "id": "T-002",
+          "title": "Implement user authentication",
+          "description": "Implement user authentication using FastAPI and PostgreSQL",
+          "story_points": 3,
+          "depends_on": [
+            "T-001"
+          ],
+          "type": "backend",
+          "code_stub": "def authenticate_user(username: str, password: str) -> bool:\n    # Purpose: Authenticate user\n    # Args: username (str), password (str)\n    # Returns: bool\n    # TODO: implement authentication logic\n    user = User.query.filter_by(username=username).first()\n    return user.check_password(password)",
+          "risks": [
+            "Password hashing inconsistencies"
+          ],
+          "acceptance_criteria": [
+            "User is authenticated successfully",
+            "Invalid credentials return error response"
+          ]
+        },
+        {
+          "id": "T-003",
+          "title": "Create document model",
+          "description": "Design and implement document model with revision history",
+          "story_points": 5,
+          "depends_on": [
+            "T-001"
+          ],
+          "type": "backend",
+          "code_stub": "def create_document(title: str, content: str) -> Document:\n    # Purpose: Create new document\n    # Args: title (str), content (str)\n    # Returns: Document\n    # TODO: implement document creation logic\n    document = Document(title=title, content=content)\n    document.save()\n    return document",
+          "risks": [
+            "Revision history inconsistencies"
+          ],
+          "acceptance_criteria": [
+            "Document is created with revision history",
+            "Document is returned in API response"
+          ]
+        },
+        {
+          "id": "T-004",
+          "title": "Implement real-time collaborative editing using WebSockets",
+          "description": "Implement real-time collaborative editing using WebSockets and Redis",
+          "story_points": 8,
+          "depends_on": [
+            "T-002",
+            "T-003"
+          ],
+          "type": "backend",
+          "code_stub": "def handle_edit_document(document_id: int, user_id: int, content: str) -> None:\n    # Purpose: Handle edit document event\n    # Args: document_id (int), user_id (int), content (str)\n    # Returns: None\n    # TODO: implement edit document logic\n    document = Document.query.get(document_id)\n    document.content = content\n    document.save()\n    # Broadcast update to other users",
+          "risks": [
+            "WebSocket connection inconsistencies"
+          ],
+          "acceptance_criteria": [
+            "Multiple users can edit document simultaneously",
+            "Changes are reflected in real-time"
+          ]
+        },
+        {
+          "id": "T-005",
+          "title": "Implement role-based access control",
+          "description": "Implement role-based access control for documents",
+          "story_points": 3,
+          "depends_on": [
+            "T-001",
+            "T-003"
+          ],
+          "type": "backend",
+          "code_stub": "def check_access(document_id: int, user_id: int) -> bool:\n    # Purpose: Check user access to document\n    # Args: document_id (int), user_id (int)\n    # Returns: bool\n    # TODO: implement access control logic\n    document = Document.query.get(document_id)\n    user = User.query.get(user_id)\n    return user.has_access(document)",
+          "risks": [
+            "Access control inconsistencies"
+          ],
+          "acceptance_criteria": [
+            "Users can only access documents based on their role",
+            "Access control is enforced for all document operations"
+          ]
+        }
+      ],
+      "sprint_recommendation": "Execute tasks in the following order: T-001, T-002, T-003, T-005, T-004. Tasks T-002 and T-003 can be executed in parallel. Task T-004 depends on T-002 and T-003, and should be executed last.",
+      "unknowns": [
+        "How will the team handle conflicts between multiple users editing the same document simultaneously?",
+        "What is the expected load on the system, and how will it be handled?"
+      ]
+    },
+    "score": 8800
+  }
+}
